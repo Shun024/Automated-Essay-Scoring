@@ -1,181 +1,167 @@
-# Automated Essay Scoring (AES) — Demo Project
 
-**Goal:** Build an interpretable machine learning pipeline that predicts essay scores automatically using **Natural Language Processing (NLP)** and **supervised learning**.  
-This demo simulates the **Automated Student Assessment Prize (ASAP)** competition setup.
+# Automated Essay Scoring Demo (`main.py`)
+
+## Project Overview
+
+This project demonstrates an **Automated Essay Scoring (AES)** pipeline using classical machine learning techniques and optional deep learning (BERT). It covers the full workflow from text cleaning, feature extraction, modeling, evaluation, explainability, and deployment scaffolds.
+
+**Key Features:**
+
+- Simulate a dataset or load a real essay dataset (ASAP)
+- Text preprocessing: lowercase, optional stopwords removal, optional lemmatization
+- Feature extraction: TF-IDF, lexical features, optional sentiment
+- Models: Linear Regression, Random Forest (optional: BERT fine-tuning)
+- Evaluation metrics: RMSE, R², Quadratic Weighted Kappa (QWK)
+- Explainability: SHAP or permutation importance fallback
+- Deployment scaffold: FastAPI API for serving predictions
+- Model artifacts saved for reproducibility
 
 ---
 
-## Overview
+## Requirements
 
-This project implements a simplified **Automated Essay Scoring (AES)** system capable of:
-- Preprocessing and cleaning raw essay text
-- Extracting meaningful features (TF-IDF, word count, sentiment)
-- Training multiple models (Linear Regression, Random Forest, optional BERT)
-- Evaluating model performance using **Quadratic Weighted Kappa (QWK)** and **RMSE**
-- Providing interpretability with **feature importance** and **SHAP explainability**
-- Optional deployment readiness with **FastAPI endpoint**
+```txt
+numpy>=1.23
+pandas>=2.0
+scikit-learn>=1.3
+matplotlib>=3.7
+seaborn>=0.12
+joblib>=1.3
+nltk>=3.8
+textblob>=0.17
+shap>=0.44
+torch>=2.0           # optional, for BERT
+transformers>=4.35   # optional, for BERT
+fastapi>=0.103       # optional, for API
+uvicorn>=0.23        # optional, for API
+
+
+> ⚠️ NLTK resources must be downloaded once:
+>
+> ```python
+> import nltk
+> nltk.download('stopwords')
+> nltk.download('wordnet')
+> nltk.download('omw-1.4')
+> ```
 
 ---
 
 ## File Structure
 
-Automated_Essay_Scoring/
-│
-├── main.py                     # Main script containing the entire AES pipeline
-├── requirements.txt             # Dependencies list
-├── README.md                    # Project documentation
-├── data/                        # (Optional) Folder for essay datasets
-│   └── sample_data.csv          # Example dataset or generated data
-├── models/                      # Trained model outputs (saved with joblib)
-│   └── best_model.joblib
-├── reports/                     # Generated results and visualizations
-│   ├── feature_importance.png
-│   ├── shap_summary_plot.png
-│   └── model_results.txt
-└── utils/                       # (Optional) Utility modules for data prep, viz, etc.
-
-````
+```
+AutomatedEssayScoring/
+├── main.py                     # Full AES pipeline
+├── essay_model_artifacts/      # Saved model, TF-IDF vectorizer, lexical feature columns
+│   ├── best_model.joblib
+│   ├── tfidf_vectorizer.joblib
+│   └── lexical_features_columns.csv
+├── requirements.txt            # Python dependencies
+└── README.md
+```
 
 ---
 
-## Installation
+## Usage
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/Automated_Essay_Scoring.git
-   cd Automated_Essay_Scoring
-````
-
-2. **Create a virtual environment:**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate      # On macOS/Linux
-   venv\Scripts\activate         # On Windows
-   ```
-
-3. **Install dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
----
-
-## How to Run
-
-### Option 1 — Simulate Essay Data (default)
+Run the full pipeline with simulated dataset:
 
 ```bash
 python main.py
 ```
 
-### Option 2 — Use Your Own Dataset
+Optional: run FastAPI API scaffold (requires FastAPI and uvicorn):
 
-Modify the following in `main.py`:
-
-```python
-results = run_pipeline(simulate=False, data_path="data/your_dataset.csv")
+```bash
+uvicorn main:fastapi_scaffold --reload
 ```
 
-### Outputs:
+---
 
-* Model evaluation metrics printed to console
-* Visualizations saved to `/reports/`
-* Trained model saved under `/models/`
+## Example Outputs
+
+**Dataset Sample (simulated)**
+
+| essay_text                                   | score |
+| -------------------------------------------- | ----- |
+| "Education school learning strong..."        | 7     |
+| "Technology software program clear..."       | 5     |
+| "Environment climate pollution excellent..." | 8     |
+
+**Model Evaluation (Test Set)**
+
+| model            | RMSE | R²   | QWK  |
+| ---------------- | ---- | ---- | ---- |
+| RandomForest     | 1.22 | 0.78 | 0.82 |
+| LinearRegression | 1.75 | 0.55 | 0.60 |
+
+**Explainability Output (Top Features from Permutation Importance / SHAP)**
+
+| feature             | importance_mean / mean_abs_shap |
+| ------------------- | ------------------------------- |
+| "strong"            | 0.082                           |
+| "excellent"         | 0.075                           |
+| "word_count"        | 0.063                           |
+| "unique_word_ratio" | 0.052                           |
+| "clear"             | 0.049                           |
 
 ---
 
-## Pipeline Summary
+## Pipeline Details
 
-| Stage                   | Description                                                    |
-| ----------------------- | -------------------------------------------------------------- |
-| **Data Loading**        | Loads either synthetic essays or your CSV dataset              |
-| **Text Preprocessing**  | Lowercasing, stopword removal, lemmatization                   |
-| **Feature Engineering** | TF-IDF vectorization, word count, sentiment scores             |
-| **Model Training**      | Compares Linear Regression, Random Forest, and optionally BERT |
-| **Evaluation**          | Calculates **QWK**, **RMSE**, and cross-validation scores      |
-| **Explainability**      | Uses `permutation_importance` and `SHAP` for interpretability  |
+1. **Text Cleaning**
 
----
+* Lowercasing, removing non-alphanumeric characters
+* Optional stopword removal and lemmatization using NLTK
 
-## Explainability
+2. **Feature Extraction**
 
-### 1. Feature Importance
+* TF-IDF (1-2 grams)
+* Lexical features: word count, character count, average word length, unique word ratio
+* Optional sentiment analysis via TextBlob
 
-* Computed using sklearn’s `permutation_importance()`
-* Automatically converts sparse TF-IDF matrices to dense arrays for compatibility
-* Visualizes top contributing features to essay score prediction
+3. **Model Training**
 
-### 2. SHAP Summary
+* Linear Regression
+* Random Forest (Tree-based model suitable for SHAP)
+* Optional: BERT fine-tuning scaffold (requires Transformers & GPU)
 
-* Provides global interpretability (which words contribute most)
-* Optional per-essay breakdown using SHAP’s force plots
+4. **Evaluation Metrics**
 
----
+* **RMSE** – root mean squared error
+* **R²** – coefficient of determination
+* **Quadratic Weighted Kappa (QWK)** – standard for scoring tasks
 
-##  Example Output
+5. **Explainability**
 
-**Console Output:**
+* SHAP for Random Forest (TreeExplainer)
+* Permutation importance fallback if SHAP unavailable or model unsupported
 
-```
-Running Automated Essay Scoring Pipeline...
-Simulating dataset with 800 essays...
-Training RandomForestRegressor...
-RMSE: 1.21
-QWK: 0.83
-Best model: RandomForestRegressor
-Feature importance plot saved to reports/feature_importance.png
-SHAP analysis completed.
-```
+6. **Deployment**
 
-**Feature Importance Plot:**
-![Feature Importance](reports/feature_importance.png)
-
-**SHAP Summary Plot:**
-![SHAP Summary](reports/shap_summary_plot.png)
+* FastAPI scaffold to serve predictions from saved model
+* Input: `essay_text`, Output: predicted score (float & rounded integer)
 
 ---
 
-## Example Fairness & Explainability Summary
+## Fairness & Interpretability Notes
 
-| Metric            | Description                                                                  | Example Value                      |
-| ----------------- | ---------------------------------------------------------------------------- | ---------------------------------- |
-| RMSE              | Root Mean Squared Error — measures average prediction deviation              | **1.21**                           |
-| QWK               | Quadratic Weighted Kappa — measures agreement between model and human raters | **0.83**                           |
-| Feature Influence | Most impactful essay terms influencing scores                                | “coherence”, “argument”, “grammar” |
-| Fairness Check    | Correlation between score and essay length / topic                           | No significant bias detected       |
-
-> **Interpretation:**
-> The model performs consistently across essay lengths and topics, with higher scores correlated with logical coherence and vocabulary richness. SHAP analysis shows grammatical accuracy and argument quality as dominant predictors.
+* Lexical features and TF-IDF terms help understand **which words contribute most to scores**
+* SHAP/Permutation importance can highlight **biases or unexpected predictors**
+* For real datasets, monitor **score distribution across demographic groups** to check potential unfairness
 
 ---
 
-## Tech Stack
+## Artifacts Saved
 
-* **Language:** Python 3.9+
-* **Libraries:**
-  `scikit-learn`, `pandas`, `numpy`, `matplotlib`, `seaborn`, `nltk`, `textblob`, `shap`, `joblib`
-* **ML Techniques:** TF-IDF, sentiment scoring, regression models, explainable AI
-* **Optional Extensions:** BERT fine-tuning (`transformers`), API serving (`FastAPI`)
+* `best_model.joblib` – trained scikit-learn model
+* `tfidf_vectorizer.joblib` – TF-IDF vectorizer
+* `lexical_features_columns.csv` – names of lexical features used in training
 
 ---
 
-## Next Steps (Stretch Goals)
+## References
 
-* Add **FastAPI service** for live essay scoring endpoint
-* Integrate **BERT-based embeddings** for semantic understanding
-* Incorporate **bias & fairness audits** by demographic or topic clusters
-* Optimize for **real-time inference** and deployment
-
----
-
-## Citation
-
-This project structure and evaluation metric (QWK) are inspired by the **Automated Student Assessment Prize (ASAP)** competition hosted on **Kaggle**.
-
----
-
-## Author
-
-**Shun Le Yi Mon**
+* [ASAP Automated Student Assessment Prize](https://www.kaggle.com/c/asap-aes)
+* SHAP: [https://github.com/slundberg/shap](https://github.com/slundberg/shap)
+* Quadratic Weighted Kappa: [[https://en.wikipedia.org/wiki/Cohen%27s_kappa#Quadratic_weighted_kappa](https://en.wikipedia.org/wiki/Cohen%27s_kappa#Quadratic_weighted_kappa))
