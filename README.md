@@ -34,7 +34,7 @@ torch>=2.0           # optional, for BERT
 transformers>=4.35   # optional, for BERT
 fastapi>=0.103       # optional, for API
 uvicorn>=0.23        # optional, for API
-
+````
 
 > ⚠️ NLTK resources must be downloaded once:
 >
