@@ -1,5 +1,5 @@
 
-# Automated Essay Scoring Demo (`main.py`)
+# Automated Essay Scoring
 
 ## Project Overview
 
